@@ -1,0 +1,199 @@
+// include the library code:
+#include <LiquidCrystal.h>
+
+// Mapamento de Hardware
+#define butUp 6
+#define butDown 7
+#define butL 8
+#define Port1 A0
+#define Port2 A1
+
+// Funções Auxiliares
+void changeMenu();
+void dispMenu();
+void UserRegistration();
+void Userlist();
+void EventList();
+void fport1();
+void fport2();
+
+// Variaveis globais
+char menu = 0x01;
+char set1 = 0x00; 
+char set2 = 0x00;
+boolean t_butUp;
+boolean t_butDown;
+boolean t_butL;
+boolean t_butM;
+
+// initialize the library with the numbers of the interface pins
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+void setup() {
+  // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+  
+  for (char i=6; i<9; i++) pinMode(i, INPUT_PULLUP);
+  
+  pinMode(Port1, OUTPUT);
+  pinMode(Port2, OUTPUT);
+  
+  t_butUp =   0x00;
+  t_butDown = 0x00;
+  t_butL =    0x00;
+  t_butM =    0x00;
+  
+  digitalWrite(Port1, LOW);
+  digitalWrite(Port2, LOW);
+  
+    
+}
+
+void loop() {
+  // set the cursor to column 0, line 1
+  // (note: line 1 is the second row, since counting begins with 0):
+  lcd.setCursor(0, 1);
+  // print the number of seconds since reset:
+  changeMenu();
+  dispMenu();
+}
+
+void changeMenu()
+{
+  if(!digitalRead(butUp)) t_butUp = 0x01;
+  if(!digitalRead(butDown)) t_butDown = 0x01;
+  
+  if(digitalRead(butUp) && t_butUp)
+  {
+    t_butUp = 0x00;
+  
+  	lcd.clear();
+  	menu++;
+  
+  	if(menu > 0x05) menu = 0x01;
+  } // end but UP
+  
+  if(digitalRead(butDown) && t_butDown)
+  {
+    t_butDown = 0x00;
+    
+    lcd.clear();
+    menu--;
+    
+    if(menu < 0x01) menu = 0x05;
+    
+  }// end butDown
+  
+  
+}
+
+void dispMenu()
+{
+	switch(menu)
+    {
+      case 0x01:
+      	UserRegistration();
+      
+        break;
+	  case 0x02:
+        Userlist();
+      
+        break;
+      case 0x03:
+        EventList();
+      
+        break;
+      case 0x04:
+        fport1();
+      
+        break;
+      case 0x05:
+        fport2();
+      
+        break;
+      
+    }
+}
+
+void UserRegistration()
+{
+  lcd.setCursor(0,0);
+  lcd.print("UserRegistration");
+  lcd.setCursor(0,1);
+  
+  lcd.print("...");
+  
+}
+
+void Userlist()
+{
+  lcd.setCursor(0,0);
+  lcd.print("Userlist");  
+  lcd.setCursor(1,1);
+  
+  lcd.print("...");
+  
+}
+
+void EventList()
+{
+  lcd.setCursor(0,0);
+  lcd.print("EventList");
+  
+  if(!digitalRead(butL)) t_butL = 0x01;
+  //if(!digitalRead(butM)) t_butM = 0x01;
+  
+  if(digitalRead(butL) && t_butL)
+  {
+    
+    t_butL = 0x00;
+    
+    set1++;
+    
+    if(set1 > 2) set1 = 0x01;
+    
+    switch(set1)
+    {
+      case 0x01:
+        lcd.setCursor(0,1);
+        lcd.print("Port1 OPEN");
+        digitalWrite(Port1, HIGH);
+        break;
+      case 0x02:
+      	lcd.setCursor(0,1);
+      	lcd.print("Port Closed");
+      	digitalWrite(Port1, LOW);
+      	break;
+    }
+  }
+}
+
+void fport1()
+{
+  
+  lcd.setCursor(0,0);
+  lcd.print("Port1");
+  lcd.setCursor(7,1);
+  
+  lcd.print("...");
+}
+
+void fport2()
+{
+  
+  lcd.setCursor(0,0);
+  lcd.print("Port2");
+  lcd.setCursor(7,1);
+  
+  lcd.print("...");
+}
+
+        
+  
+  
+    
+
+
+  
+      	
+      
