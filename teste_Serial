@@ -13,6 +13,9 @@ boolean flag_option;
 const int BUFFER_SIZE = 100;
 char buf[BUFFER_SIZE];
 
+String inputString = "";         // a String to hold incoming data
+bool stringComplete = false;  // whether the string is complete
+
 String recebi;
 String nome;
 String senha;
@@ -33,6 +36,9 @@ void fport2();
 void setup()
 {
   Serial.begin(9600);
+  // reserve 200 bytes for the inputString:
+  inputString.reserve(200);
+  
   pinMode(2, OUTPUT);
   pinMode(3, OUTPUT);
   
@@ -48,11 +54,36 @@ void loop()
     dispmenu(); 
     flag_menu = 0x00;
   }
-  readoption();
-  Serial.println(leString(1));
-  Serial.println(leString(2));
-  
+  if (flag_option) 
+  {
+    readoption();
+    flag_menu = 0x00;
+  }
+  switch (recebido){
+      case 1:
+      	 UserRegistration();
+      	 break;
+      case 2:
+      	 dispmenu();
+      	 break;
+  }
+
 }
+
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    if(inChar == '/') {
+      stringComplete = true;
+    }else {
+    // add it to the inputString:
+    	inputString += inChar;
+    }// if the incoming character is a newline, set a flag so the main loop can
+    // do something about it:
+  }
+}
+
 
 void dispmenu()
 {
@@ -68,21 +99,29 @@ void dispmenu()
 
 void readoption()
 {
-  if(Serial.available() > 0) {
-     recebido = Serial.read();
+  if (stringComplete) {
+    recebido = inputString.toInt();
+    Serial.println(recebido);
     switch (recebido){
-      case '1':
+      case 1:
          //if(led1 == HIGH) {led1 = LOW;} else {led1 = HIGH;}
       	 //digitalWrite(2, led1);
+         inputString = "";
+    	 stringComplete = false;
+      	 flag_option = 0x00;
+         Serial.println("Digite seu nome: ");
       	 UserRegistration();
       	 break;
-      case '2':
+      case 2:
          if(led2 == HIGH) {led2 = LOW;} else {led2 = HIGH;}
       	 digitalWrite(3, led2);
       	 dispmenu();
       	 break;
       default:
+         inputString = "";
+    	 stringComplete = false;
       	 Serial.println("Opção inválida");
+         flag_option = 0x01;
     }
   }
 }
@@ -90,49 +129,32 @@ void readoption()
   
 void UserRegistration()
 {
-  Serial.println("Digite seu nome: ");
-  delay(5000);
-  Serial.println(Serial.available());
-  	if(Serial.available() > 0) {
-        //int rlen = Serial.readBytesUntil('\n', buf, BUFFER_SIZE);
-      	nome = Serial.readString();
-      	Serial.println(posicaobase);
-      	escreveString(posicaobase, nome);
+  if (stringComplete) {
+     //int rlen = Serial.readBytesUntil('\n', buf, BUFFER_SIZE);
+     //nome = Serial.readString();
+    nome = inputString;
+    //Serial.println("KIIIIIIIIIIIII");
+    //Serial.println(Serial.available());
+    //Serial.println(nome);
+    //Serial.println(posicaobase);
+    escreveString(posicaobase, nome);
         //EEPROM.write(1, byte nome);
         //Serial.print("I received: ");
     	//for(int i = 0; i < rlen; i++)
       	//Serial.print(buf[i]);
-        Serial.println(leString(posicaobase));
-    }
-  Serial.println("Digite seu password: ");
-  delay(5000);
-  Serial.println(Serial.available());
-  	if(Serial.available() > 0) {
-        //int rlen = Serial.readBytesUntil('\n', buf, BUFFER_SIZE);
-      	senha = Serial.readString();
-        //EEPROM.write(2, senha);
-        //Serial.print("I received: ");
-    	//for(int i = 0; i < rlen; i++)
-      	//Serial.print(buf[i]);
-        Serial.println(senha);
-    }
-  Serial.println("Este usuário é ADM? S/N");
-  delay(5000);
-  Serial.println(Serial.available());
-  	if(Serial.available() > 0) {
-        //int rlen = Serial.readBytesUntil('\n', buf, BUFFER_SIZE);
-      	tipo = Serial.readString();
-        //EEPROM.write(3, tipo);
-        //Serial.print("I received: ");
-    	//for(int i = 0; i < rlen; i++)
-      	//Serial.print(buf[i]);
-        Serial.println(tipo);
-    }
-      	
-  	Serial.println("Cadastro Realizado com sucesso \n");
+    Serial.println(leString(posicaobase));
+    Serial.println(posicaobase);
+    inputString = "";
+    stringComplete = false;
+    Serial.println("Cadastro Realizado com sucesso \n");
   	//Serial.println(EEPROM.read(Name));
   	flag_menu = 0x01; 
+    flag_option = 0x01;
   	posicaobase++;
+   }
+  
+      	
+  	
   
 }
 
@@ -164,5 +186,4 @@ String leString(int enderecoBase){
   }
   return mensagem; // Retorno da mensagem
 }
-  
-  
+ 
