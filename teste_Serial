@@ -1,0 +1,86 @@
+
+
+// C++ code
+//
+int recebido = 0;
+int led1 = LOW;
+int led2 = LOW;
+int led3 = LOW;
+
+// Variaveis Globais
+boolean flag_menu;
+boolean flag_option;
+
+// Funções Auxiliares
+void dispmenu();
+void readoption();
+void changeMenu();
+void dispMenu();
+void UserRegistration();
+void Userlist();
+void EventList();
+void fport1();
+void fport2();
+
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+  
+  flag_menu = 0x01;
+  flag_option = 0x01;
+}
+
+void loop()
+{
+  if (flag_menu) 
+  {
+    dispmenu(); 
+    flag_menu = 0x00;
+  }
+  readoption();
+}
+
+void dispmenu()
+{
+  Serial.println("Escolha entre as opções abaixo: ");
+  delay(1000);
+  Serial.println("1 - Cadastro");
+  Serial.println("2 - LEitura");
+}
+
+void readoption()
+{
+  if(Serial.available() > 0) {
+     recebido = Serial.read();
+    switch (recebido){
+      case '1':
+         //if(led1 == HIGH) {led1 = LOW;} else {led1 = HIGH;}
+      	 //digitalWrite(2, led1);
+      	 UserRegistration();
+      	 break;
+      case '2':
+         if(led2 == HIGH) {led2 = LOW;} else {led2 = HIGH;}
+      	 digitalWrite(3, led2);
+      	 dispmenu();
+      	 break;
+      default:
+      	 Serial.println("Opção inválida");
+    }
+  }
+}
+
+  
+void UserRegistration()
+{
+	Serial.println(Serial.available());
+  	if(Serial.available() > 0) {
+      	recebido = Serial.read();
+      	
+  	Serial.println("Cadastro Realizado com sucesso \n");
+  	flag_menu = 0x01;
+  
+}
+  
+  
