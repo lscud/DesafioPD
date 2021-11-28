@@ -12,17 +12,24 @@ boolean flag_option;
 int recebido = 0;
 int sub_1 = 1; //contador para controlar os 3 submenus (nome, password, tipo) do 1º menu (cadastrar)
 long inter_sub1 = 1;  //flag para controlar as interações do loop para que as frases sejam printadas apenas 1 vez
+long inter_menu45_n = 1;
+long inter_menu45_s = 2;
 
 const int BUFFER_SIZE = 100;
 char buf[BUFFER_SIZE];
 
 String inputString = "";         // a String to hold incoming data
 bool stringComplete = false;  // whether the string is complete
+bool n_ok = true;
+bool s_ok = false;
 
 String recebi;
 String nome;
 String senha;
 String tipo;
+String nome_entrada;
+String senha_entrada;
+
 int posicaobase = 1;
 int mapeamento = 901;
 int ponteiro = 0;
@@ -51,7 +58,7 @@ void setup()
   flag_option = 0x01;
   
   
-  EEPROM.write(900,0); //Definindo posição inicial para gravar indexação
+  EEPROM.write(900,1); //Definindo posição inicial para gravar indexação
   
 }
 
@@ -75,6 +82,11 @@ void loop()
       case 2:
       	 Userlist();
       	 break;
+      case 4:
+    	 inter_menu45_n++;
+         inter_menu45_s++;
+         fport1();
+    	 break;
   } 
 }
 
@@ -122,6 +134,12 @@ void readoption()
       	 flag_option = 0x00;
          Userlist();
       	 break;
+      case 4:
+         inputString = "";
+    	 stringComplete = false;
+      	 flag_option = 0x00;
+      	 fport1();
+		 break;      	      	
       case 6:
          if(led2 == HIGH) {led2 = LOW;} else {led2 = HIGH;}
       	 digitalWrite(3, led2);
@@ -272,8 +290,6 @@ void Userlist()
   //Serial.println(EEPROM.read(901));
   //Serial.println(leString(0));
   //Serial.println(leString(1));
-  
-        Serial.println(EEPROM.read(901));
   for (int i = 900; i<mapeamento; i = i+4){
     Serial.println(leString(EEPROM.read(i)));
   }
@@ -281,6 +297,45 @@ void Userlist()
     flag_option = 0x01;
   	recebido = 0; 
 }
+
+void fport1()
+{ 
+  if (inter_menu45_n == 1) {Serial.println("Entre com a Nome e Senha para abrir a porta 1! \nNome: ");}
+  if (stringComplete and n_ok){
+     nome_entrada = inputString + '\0';
+     inter_menu45_s = 1;
+     inputString = "";
+     stringComplete = false;
+    n_ok = false;
+    s_ok = true;
+    }
+  if (inter_menu45_s == 1) {Serial.println("Senha: ");}
+  if (stringComplete and s_ok){
+    senha_entrada = inputString+'\0';
+    inputString = "";
+    stringComplete = false;
+     for (int i = 900; i<mapeamento; i = i+4){
+    	if(leString(EEPROM.read(i)) == nome_entrada && leString(EEPROM.read(i+1)) == senha_entrada){
+          do{
+          }
+          while (
+          if(led2 == HIGH) {led2 = LOW;} else {led2 = HIGH;}
+      	 digitalWrite(3, led2);
+          
+          
+    } 
+  }
+  }
+    //flag_menu = 0x01; 
+   // flag_option = 0x01;
+  	//recebido = 0; 
+  
+  
+	
+}
+
+
+
 
 void escreveString(int enderecoBase, String mensagem){ // Salva a string nos endereços de forma sequencial
   if (mensagem.length()>EEPROM.length() || (enderecoBase+mensagem.length()) >EEPROM.length() ){ // verificamos se a string cabe na memória a partir do endereço desejado
