@@ -1,7 +1,7 @@
 #include <EEPROM.h>
 
 //
-int recebido = 0;
+
 int led1 = LOW;
 int led2 = LOW;
 int led3 = LOW;
@@ -9,6 +9,9 @@ int led3 = LOW;
 // Variaveis Globais
 boolean flag_menu;
 boolean flag_option;
+int recebido = 0;
+int sub_1 = 1; //contador para controlar os 3 submenus (nome, password, tipo) do 1º menu (cadastrar)
+long inter_sub1 = 1;  //flag para controlar as interações do loop para que as frases sejam printadas apenas 1 vez
 
 const int BUFFER_SIZE = 100;
 char buf[BUFFER_SIZE];
@@ -20,7 +23,9 @@ String recebi;
 String nome;
 String senha;
 String tipo;
-int posicaobase;
+int posicaobase = 1;
+int mapeamento = 901;
+int ponteiro = 0;
 
 // Funções Auxiliares
 void dispmenu();
@@ -45,6 +50,9 @@ void setup()
   flag_menu = 0x01;
   flag_option = 0x01;
   
+  
+  EEPROM.write(900,0); //Definindo posição inicial para gravar indexação
+  
 }
 
 void loop()
@@ -57,17 +65,17 @@ void loop()
   if (flag_option) 
   {
     readoption();
-    flag_menu = 0x00;
+    //flag_menu = 0x00;
   }
   switch (recebido){
       case 1:
+         inter_sub1++;
       	 UserRegistration();
       	 break;
       case 2:
-      	 dispmenu();
+      	 Userlist();
       	 break;
-  }
-
+  } 
 }
 
 void serialEvent() {
@@ -84,11 +92,9 @@ void serialEvent() {
   }
 }
 
-
 void dispmenu()
 {
   Serial.println("Escolha entre as opções abaixo: ");
-  delay(1000);
   Serial.println("1 - Cadastro");
   Serial.println("2 - Leitura");
   Serial.println("3 - Eventos");
@@ -101,7 +107,6 @@ void readoption()
 {
   if (stringComplete) {
     recebido = inputString.toInt();
-    Serial.println(recebido);
     switch (recebido){
       case 1:
          //if(led1 == HIGH) {led1 = LOW;} else {led1 = HIGH;}
@@ -109,10 +114,15 @@ void readoption()
          inputString = "";
     	 stringComplete = false;
       	 flag_option = 0x00;
-         Serial.println("Digite seu nome: ");
-      	 UserRegistration();
+      	 UserRegistration(); 
       	 break;
       case 2:
+         inputString = "";
+    	 stringComplete = false;
+      	 flag_option = 0x00;
+         Userlist();
+      	 break;
+      case 6:
          if(led2 == HIGH) {led2 = LOW;} else {led2 = HIGH;}
       	 digitalWrite(3, led2);
       	 dispmenu();
@@ -129,33 +139,147 @@ void readoption()
   
 void UserRegistration()
 {
-  if (stringComplete) {
-     //int rlen = Serial.readBytesUntil('\n', buf, BUFFER_SIZE);
-     //nome = Serial.readString();
-    nome = inputString;
-    //Serial.println("KIIIIIIIIIIIII");
-    //Serial.println(Serial.available());
-    //Serial.println(nome);
-    //Serial.println(posicaobase);
-    escreveString(posicaobase, nome);
+  if(sub_1 == 1)
+  {
+    if (inter_sub1 == 1) {Serial.println("Digite seu Nome: ");}
+  	if (stringComplete) {
+    	 //int rlen = Serial.readBytesUntil('\n', buf, BUFFER_SIZE);
+    	 //nome = Serial.readString();
+   		 nome = inputString;
+    	//Serial.println("KIIIIIIIIIIIII");
+    	//Serial.println(Serial.available());
+    	//Serial.println(nome);
+    	//Serial.println(posicaobase);
+    	escreveString(posicaobase, nome);
         //EEPROM.write(1, byte nome);
         //Serial.print("I received: ");
     	//for(int i = 0; i < rlen; i++)
       	//Serial.print(buf[i]);
-    Serial.println(leString(posicaobase));
-    Serial.println(posicaobase);
-    inputString = "";
-    stringComplete = false;
-    Serial.println("Cadastro Realizado com sucesso \n");
-  	//Serial.println(EEPROM.read(Name));
-  	flag_menu = 0x01; 
+    	Serial.println(leString(posicaobase));
+	    Serial.println(posicaobase);
+    	inputString = "";
+    	stringComplete = false;
+    	Serial.println("Cadastro Realizado com sucesso \n");
+  		//Serial.println(EEPROM.read(Name));
+      	sub_1++; // controle submenus
+      	inter_sub1 = 0; // controle do aparecimento dot texto requisitando informação
+        //ponteiro = ponteiro + nome.length();
+        posicaobase = posicaobase + nome.length() + 1; // + 1 pois tem o \o e seria a proxima
+        EEPROM.write(mapeamento,posicaobase);
+        mapeamento++;
+  		Serial.println("GRAVOUUU?");
+        Serial.println(EEPROM.read(900));
+        Serial.println(EEPROM.read(901));
+        ///Serial.println(ponteiro);
+      	Serial.println(posicaobase);    	
+   	}
+  } else if (sub_1 == 2)
+  {
+    	if (inter_sub1 == 1) {Serial.println("Digite seu PAssword: ");}
+       	if (stringComplete) {
+    	//int rlen = Serial.readBytesUntil('\n', buf, BUFFER_SIZE);
+     	//nome = Serial.readString();
+    	senha = inputString;
+    	//Serial.println("KIIIIIIIIIIIII");
+    	//Serial.println(Serial.available());
+    	//Serial.println(nome);
+    	//Serial.println(posicaobase);
+    	escreveString(posicaobase, senha);
+        //EEPROM.write(1, byte nome);
+        //Serial.print("I received: ");
+    	//for(int i = 0; i < rlen; i++)
+      	//Serial.print(buf[i]);
+	    Serial.println(leString(posicaobase));
+    	Serial.println(posicaobase);
+    	inputString = "";
+    	stringComplete = false;
+    	Serial.println("Cadastro Realizado com sucesso \n");
+  		//Serial.println(EEPROM.read(Name));
+        //ponteiro = ponteiro + senha.length();
+        posicaobase = posicaobase + senha.length() + 1; // + 2 pois tem o \o e seria a proxima
+        EEPROM.write(mapeamento,posicaobase);
+        mapeamento++;  
+		sub_1++;
+        inter_sub1 = 0;   
+          Serial.println(EEPROM.read(902));
+        }
+  }	else if (sub_1 == 3)
+  { 
+    if (inter_sub1 == 1) {Serial.println("Este usuário é ADM? S/N");}
+    if (stringComplete) {
+    	//int rlen = Serial.readBytesUntil('\n', buf, BUFFER_SIZE);
+     	//nome = Serial.readString();
+    	tipo = inputString;
+    	//Serial.println("KIIIIIIIIIIIII");
+    	//Serial.println(Serial.available());
+    	//Serial.println(nome);
+    	//Serial.println(posicaobase);
+    	escreveString(posicaobase, tipo);
+        //EEPROM.write(1, byte nome);
+        //Serial.print("I received: ");
+    	//for(int i = 0; i < rlen; i++)
+      	//Serial.print(buf[i]);
+	    Serial.println(leString(posicaobase));
+    	Serial.println(posicaobase);
+    	inputString = "";
+    	stringComplete = false;
+    	Serial.println("Cadastro Realizado com sucesso \n");
+  		//Serial.println(EEPROM.read(Name));
+        sub_1 = 1;
+        inter_sub1 = 0;
+        //ponteiro = ponteiro + tipo.length();
+        posicaobase = posicaobase + tipo.length() + 1; // + 2 pois tem o \o e seria a proxima
+        EEPROM.write(mapeamento,posicaobase);
+        mapeamento++; 
+        escreveString(posicaobase, "0"); //Posição para porta
+        posicaobase = posicaobase + tipo.length() + 1; // + 2 pois tem o \o e seria a proxima
+        EEPROM.write(mapeamento,posicaobase);
+        mapeamento++; 
+  		flag_menu = 0x01; 
+    	flag_option = 0x01;
+        recebido = 0;
+     //Serial.println("Memoria");
+     //Serial.println(leString(1));
+     //Serial.println(leString(6));
+     //Serial.println(leString(11));
+     //Serial.println(leString(13)); 
+     //Serial.println(leString(15));
+     //Serial.println(leString(20));
+     //Serial.println(leString(23));
+     //Serial.println(leString(26)); 
+     //Serial.println(leString(27));  
+     //Serial.println(leString(28));  
+     //Serial.println("INDEXXX");        
+     //Serial.println(EEPROM.read(900));
+     //Serial.println(EEPROM.read(901));
+     //Serial.println(EEPROM.read(902));
+     //Serial.println(EEPROM.read(903));
+     //Serial.println(EEPROM.read(904));
+     //Serial.println(EEPROM.read(905));
+     //Serial.println(EEPROM.read(906));
+     //Serial.println(EEPROM.read(907));
+     //Serial.println(EEPROM.read(908));
+     //Serial.println(EEPROM.read(909));
+       
+        }
+  }
+}
+
+void Userlist() 
+{
+  //Serial.println("OQUE TEM");
+  //Serial.println(EEPROM.read(900));
+  //Serial.println(EEPROM.read(901));
+  //Serial.println(leString(0));
+  //Serial.println(leString(1));
+  
+        Serial.println(EEPROM.read(901));
+  for (int i = 900; i<mapeamento; i = i+4){
+    Serial.println(leString(EEPROM.read(i)));
+  }
+    flag_menu = 0x01; 
     flag_option = 0x01;
-  	posicaobase++;
-   }
-  
-      	
-  	
-  
+  	recebido = 0; 
 }
 
 void escreveString(int enderecoBase, String mensagem){ // Salva a string nos endereços de forma sequencial
